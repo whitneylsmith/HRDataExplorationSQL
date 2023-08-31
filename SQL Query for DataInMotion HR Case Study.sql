@@ -1,12 +1,78 @@
 -- SQL Case Study 2: Human Resources
 
+-- Case study found here: https://d-i-motion.com/courses/sql-case-studies/
+
+
+-- Schema:
+--------------------------------------------------------------------------------------------------------
+-- Create 'departments' table
+CREATE TABLE departments (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50),
+    manager_id INT
+);
+
+-- Create 'employees' table
+CREATE TABLE employees (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50),
+    hire_date DATE,
+    job_title VARCHAR(50),
+    department_id INT REFERENCES departments(id)
+);
+
+-- Create 'projects' table
+CREATE TABLE projects (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50),
+    start_date DATE,
+    end_date DATE,
+    department_id INT REFERENCES departments(id)
+);
+
+-- Insert data into 'departments'
+INSERT INTO departments (name, manager_id)
+VALUES ('HR', 1), ('IT', 2), ('Sales', 3);
+
+-- Insert data into 'employees'
+INSERT INTO employees (name, hire_date, job_title, department_id)
+VALUES ('John Doe', '2018-06-20', 'HR Manager', 1),
+       ('Jane Smith', '2019-07-15', 'IT Manager', 2),
+       ('Alice Johnson', '2020-01-10', 'Sales Manager', 3),
+       ('Bob Miller', '2021-04-30', 'HR Associate', 1),
+       ('Charlie Brown', '2022-10-01', 'IT Associate', 2),
+       ('Dave Davis', '2023-03-15', 'Sales Associate', 3);
+
+-- Insert data into 'projects'
+INSERT INTO projects (name, start_date, end_date, department_id)
+VALUES ('HR Project 1', '2023-01-01', '2023-06-30', 1),
+       ('IT Project 1', '2023-02-01', '2023-07-31', 2),
+       ('Sales Project 1', '2023-03-01', '2023-08-31', 3);
+       
+       UPDATE departments
+SET manager_id = (SELECT id FROM employees WHERE name = 'John Doe')
+WHERE name = 'HR';
+
+UPDATE departments
+SET manager_id = (SELECT id FROM employees WHERE name = 'Jane Smith')
+WHERE name = 'IT';
+
+UPDATE departments
+SET manager_id = (SELECT id FROM employees WHERE name = 'Alice Johnson')
+WHERE name = 'Sales';
+
+--------------------------------------------------------------------------------------------------------
+
+-- SQL Challenge Questions
+
 --1. Find the longest ongoing project for each department.
 
---Insert extra data into 'projects' for a better test of the longest project for each department
---INSERT INTO projects (name, start_date, end_date, department_id)
---VALUES ('HR Project 2', '2023-01-12', '2023-07-30', 1),
---       ('IT Project 2', '2023-02-14', '2023-08-30', 2),
---       ('Sales Project 2', '2023-03-01', '2023-09-30', 3);
+--Here I am inserting extra data into 'projects' to make sure the query works with
+--multiple projects per department.
+INSERT INTO projects (name, start_date, end_date, department_id)
+VALUES ('HR Project 2', '2023-01-12', '2023-07-30', 1),
+       ('IT Project 2', '2023-02-14', '2023-08-30', 2),
+       ('Sales Project 2', '2023-03-01', '2023-09-30', 3);
 
 DROP TABLE IF EXISTS #project_days
 CREATE TABLE #project_days (
@@ -41,10 +107,11 @@ LEFT JOIN #project_days as p_days
 ON max.Department = p_days.Department
 AND max.MaxProjectDays = p_days.Days
 
---Drop temp tables
+--Dropping temp tables now that I'm done with them
 DROP TABLE IF EXISTS #project_days
 DROP TABLE IF EXISTS #max_project_days
 
+	
 --2. Find all employees who are not managers.
 SELECT name, job_title, department_id
 FROM employees
@@ -70,7 +137,8 @@ ON emp.department_id = dep.id
 ORDER BY dep.name, hiring_order
 
 
---5. Find the duration between the hire date of each employee and the hire date of the next employee hired in the same department.
+--5. Find the duration between the hire date of each employee and the hire date of the next employee 
+--   hired in the same department.
 
 SELECT e1.name, e1.hire_date, dep.name AS department,
 	DATEDIFF(day,e1.hire_date,e2.hire_date) AS days_before_next_employee_hired
