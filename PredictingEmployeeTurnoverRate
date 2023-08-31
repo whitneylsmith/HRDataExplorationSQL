@@ -140,7 +140,8 @@ names(total_dept_df)[names(total_dept_df)=="Group.1"] <- "Department"
 #total_dept_df now contains turnover rate by department
 
 # Left Employer vs Satisfaction Rating
-# Satisfaction level looks pretty normally distributed among leavers, but negatively skewed in retained employees
+# Satisfaction level looks pretty normally distributed among leavers, but negatively skewed in 
+# retained employees.
 df %>% 
   mutate(left_employer = as.factor(left_employer)) %>% 
   ggplot(mapping=aes(x=satisfaction_level, fill=left_employer)) +
@@ -193,13 +194,14 @@ df %>%
   mutate(left_employer = as.factor(left_employer)) %>% 
   ggplot(mapping=aes(x=promotion_last_5years, fill=left_employer)) +
   geom_histogram(position="dodge", bins=2)+
-  labs(title = "Distribution of Promotions in the Last 5 Years", x="Not Promoted vs Promoted", y="Employee Count") +
+  labs(title = "Distribution of Promotions in the Last 5 Years", x="Not Promoted vs Promoted", 
+        y="Employee Count") +
   scale_fill_discrete(name = "Group", labels = c("Retained", "Left"))
 
 # Left Employer vs number of projects
-# A decent sized section of leavers had very few projects
-# The people with the very highest number of projects also left
-# Both distributions are positively skewed
+# A decent sized section of leavers had very few projects.
+# The people with the very highest number of projects also left.
+# Both distributions are positively skewed.
 df %>% 
   mutate(left_employer = as.factor(left_employer)) %>% 
   ggplot(mapping=aes(x=number_project, fill=left_employer)) +
@@ -250,13 +252,13 @@ logisticPseudoR2s <- function(LogModel) {
 
 # Step 5: Developing a Prediction Model ==============================
 
-# Because we are predicting a binary variable using multiple factors, some of which are continuous, the correct statistical test is
-# Logistic regression.
+# Because we are predicting a binary variable using multiple factors, some of which are continuous, the 
+# correct statistical test is logistic regression.
 
-# Look at first 6 cases of data
+# Looking at first 6 cases of data
 head(df)
 
-# Look at the dataframe structure
+# Looking at the dataframe structure
 str(df)
 
 # Convert to factors
@@ -268,12 +270,14 @@ df$promotion_last_5years <- as.factor(df$promotion_last_5years)
 ####Developing the Model================
 
 ##### Model 1: A model with everything----
-turnoverModel.1 <- glm(left_employer ~ satisfaction_level + salary + tenure + last_evaluation + work_accident + average_monthly_hours + 
-                        number_project + promotion_last_5years + department, data=df, family=binomial())
+turnoverModel.1 <- glm(left_employer ~ satisfaction_level + salary + tenure + last_evaluation + 
+                        work_accident + average_monthly_hours + number_project + promotion_last_5years + 
+                        department, data=df, family=binomial())
 summary(turnoverModel.1)
   
-# IT, marketing, product_mng, sales, support, and technical are all not significant at the alpha = .05 level and should be considered
-# for removal from the model. Consider creating binary factors for management and RandD (yes/no)
+# IT, marketing, product_mng, sales, support, and technical are all not significant at the alpha = .05 
+# level and should be considered for removal from the model. 
+# Consider creating binary factors for management and RandD (yes/no)
 
 
 # Model 1 improvement over Baseline
@@ -289,7 +293,8 @@ modelChi; chidf; chisq.prob
 # Calculate pseudo R squared values
 logisticPseudoR2s(turnoverModel.1)
 
-# Cox and Snell's R squared can be interpreted to mean that turnoverModel.1 can account for 21% of the variance in employee turnover
+# Cox and Snell's R squared can be interpreted to mean that turnoverModel.1 can account for 21% of 
+# the variance in employee turnover
 
 # Odds ratio for predictors in the model
 exp(turnoverModel.1$coefficients)
@@ -297,15 +302,16 @@ exp(turnoverModel.1$coefficients)
 # Confidence intervals for the odds ratio
 exp(confint(turnoverModel.1))
 
-# Confidence intervals for HR, IT, marketing, producct_mng, sales, support, and technical all cross 1, which indicates that the 
-# direction of these relationships may be unstable in the population as a whole. Because of this, and because they have p values > .05,
-# they should be considered for removal from the model.
+# Confidence intervals for HR, IT, marketing, producct_mng, sales, support, and technical all cross 1, 
+# which indicates that the direction of these relationships may be unstable in the population as a whole. 
+# Because of this, and because they have p values > .05, they should be considered for removal from the model.
 
 vif(turnoverModel.1)
 1/vif(turnoverModel.1)
 
-# Looking at the tolerance values, we can see that for all variables the tolerance values are close to 1 and are much larger than the 
-# cut-off point of 0.1 below which Menard (1995) suggests there may be a serious collinearity problem. 
+# Looking at the tolerance values, we can see that for all variables the tolerance values are close 
+# to 1 and are much larger than the cut-off point of 0.1 below which suggests there may be a serious 
+# collinearity problem. 
 
 # Checking collinearity by generating a correlation matrix using num_df
 num_df$number_project <- as.numeric(num_df$number_project)
@@ -317,20 +323,23 @@ num_df$promotion_last_5years <- as.numeric(num_df$promotion_last_5years)
 correlation_matrix <- cor(num_df[, unlist(lapply(num_df, is.numeric))])
 write.csv(correlation_matrix, "corr_matrix.csv")
 
-# When we look at the correlation table, we see that most correlations are below 0.3. However, number_project is fairly highly correlated 
-# with average_monthly_hours at 0.42, and both were fairly highly correlated with last_evaluation (see table below).
+# When we look at the correlation table, we see that most correlations are below 0.3. However, 
+# number_project is fairly highly correlated with average_monthly_hours at 0.42, and both were 
+# fairly highly correlated with last_evaluation (see table below).
 #
 #                       last eval   num project   avg monthly hrs
 # last eval             1.0
 # num project           0.35        1.0
 # avg monthly hrs       0.34        0.42          1.0
 # 
-# It may be best to choose either average_monthly_hours or number_project to include in the model rather than including both.
+# It may be best to choose either average_monthly_hours or number_project to include in the model 
+# rather than including both.
 
 
 ##### Model 2: A model with everything but number_project----
-turnoverModel.2 <- glm(left_employer ~ satisfaction_level + salary + tenure + last_evaluation + work_accident + average_monthly_hours + 
-                         promotion_last_5years + department, data=df, family=binomial())
+turnoverModel.2 <- glm(left_employer ~ satisfaction_level + salary + tenure + last_evaluation + 
+                          work_accident + average_monthly_hours + promotion_last_5years + department, 
+                          data=df, family=binomial())
 summary(turnoverModel.2)
 
 # Model 2 improvement over Baseline
@@ -345,7 +354,8 @@ modelChi; chidf; chisq.prob
 
 # Calculate pseudo R squared values
 logisticPseudoR2s(turnoverModel.2)
-# Cox and Snell's R squared can be interpreted to mean that turnoverModel.2 can account for 20% of the variance in employee turnover
+# Cox and Snell's R squared can be interpreted to mean that turnoverModel.2 can account for 20% 
+# of the variance in employee turnover
 
 # Odds ratio for predictors in the model
 exp(turnoverModel.2$coefficients)
@@ -353,20 +363,22 @@ exp(turnoverModel.2$coefficients)
 # Confidence intervals for the odds ratio
 exp(confint(turnoverModel.2))
 
-# Confidence intervals for HR, IT, marketing, producct_mng, sales, support, and technical all cross 1, which indicates that the 
-# direction of these relationships may be unstable in the population as a whole. Because of this, and because they have p values > .05,
-# they should be considered for removal from the model. In this model, last_evaluation also crosses 1, so it may also be unstable in the 
-# population as a whole.
+# Confidence intervals for HR, IT, marketing, producct_mng, sales, support, and technical all 
+# cross 1, which indicates that the direction of these relationships may be unstable in the 
+# population as a whole. Because of this, and because they have p values > .05, they should be 
+#considered for removal from the model. In this model, last_evaluation also crosses 1, so it may 
+# also be unstable in the population as a whole.
 
 vif(turnoverModel.2)
 1/vif(turnoverModel.2)
 
-# Looking at the tolerance values, we can see that for all variables the tolerance values are close to 1 and are much larger than the 
-# cut-off point of 0.1 below which suggests there may be a serious collinearity problem. 
+# Looking at the tolerance values, we can see that for all variables the tolerance values are close 
+# to 1 and are much larger than the  cut-off point of 0.1 below which suggests there may be a 
+# serious collinearity problem. 
 
 ##### Model 3: A model with everything but average_monthly_hours----
-turnoverModel.3 <- glm(left_employer ~ satisfaction_level + salary + tenure + last_evaluation + work_accident + 
-                         promotion_last_5years + department, data=df, family=binomial())
+turnoverModel.3 <- glm(left_employer ~ satisfaction_level + salary + tenure + last_evaluation + 
+                        work_accident + promotion_last_5years + department, data=df, family=binomial())
 summary(turnoverModel.3)
 # Slightly better than turnoverModel.2 (lower residual deviance)
 
@@ -383,7 +395,8 @@ modelChi; chidf; chisq.prob
 
 # Calculate pseudo R squared values
 logisticPseudoR2s(turnoverModel.3)
-# Cox and Snell's R squared can be interpreted to mean that turnoverModel.2 can account for 20% of the variance in employee turnover
+# Cox and Snell's R squared can be interpreted to mean that turnoverModel.2 can account for 20% 
+# of the variance in employee turnover
 
 # Odds ratio for predictors in the model
 exp(turnoverModel.2$coefficients)
@@ -391,16 +404,18 @@ exp(turnoverModel.2$coefficients)
 # Confidence intervals for the odds ratio
 exp(confint(turnoverModel.2))
 
-# Confidence intervals for HR, IT, marketing, producct_mng, sales, support, and technical all cross 1, which indicates that the 
-# direction of these relationships may be unstable in the population as a whole. Because of this, and because they have p values > .05,
-# they should be considered for removal from the model. In this model, last_evaluation also crosses 1, so it may also be unstable in the 
+# Confidence intervals for HR, IT, marketing, producct_mng, sales, support, and technical all cross 1, 
+# which indicates that the direction of these relationships may be unstable in the population as a 
+# whole. Because of this, and because they have p values > .05, they should be considered for removal 
+# from the model. In this model, last_evaluation also crosses 1, so it may also be unstable in the 
 # population as a whole.
 
 vif(turnoverModel.3)
 1/vif(turnoverModel.3)
 
-# Looking at the tolerance values, we can see that for all variables the tolerance values are close to 1 and are much larger than the 
-# cut-off point of 0.1 below which suggests there may be a serious collinearity problem. 
+# Looking at the tolerance values, we can see that for all variables the tolerance values are 
+# close to 1 and are much larger than the cut-off point of 0.1 below which suggests there may 
+# be a serious collinearity problem. 
 
 
 ##### Model 4: A model with binary factors for managment and RandD----
@@ -413,13 +428,13 @@ df$RandD<-dplyr::recode(df$department,'RandD'=1,'sales'=0,'accounting'=0,'hr'=0,
                               'IT'=0, 'management'=0,'product_mng'=0,'marketing'=0)
 
 # Create the model
-turnoverModel.4 <- glm(left_employer ~ satisfaction_level + salary + tenure + last_evaluation + work_accident + 
-                         average_monthly_hours + number_project + promotion_last_5years + management + RandD, 
-                       data=df, family=binomial())
+turnoverModel.4 <- glm(left_employer ~ satisfaction_level + salary + tenure + last_evaluation + 
+                        work_accident + average_monthly_hours + number_project + promotion_last_5years + 
+                        management + RandD, data=df, family=binomial())
 summary(turnoverModel.4)
 
-# Now that I've created binary factors for management and RandD, all predictors are significant at the alpha = 0.0001 level.
-# However, residuals are slightly higher than in turnoverModel.1.
+# Now that I've created binary factors for management and RandD, all predictors are significant at the 
+# alpha = 0.0001 level. However, residuals are slightly higher than in turnoverModel.1.
 
 # Model 4 improvement over Baseline
 # Difference between the models
@@ -434,7 +449,8 @@ modelChi; chidf; chisq.prob
 # Calculate pseudo R squared values
 logisticPseudoR2s(turnoverModel.4)
 
-# Cox and Snell's R squared can be interpreted to mean that turnoverModel.4 can account for 21% of the variance in employee turnover
+# Cox and Snell's R squared can be interpreted to mean that turnoverModel.4 can account for 21% 
+# of the variance in employee turnover
 
 # Odds ratio for predictors in the model
 exp(turnoverModel.4$coefficients)
@@ -442,19 +458,22 @@ exp(turnoverModel.4$coefficients)
 # Confidence intervals for the odds ratio
 exp(confint(turnoverModel.4))
 
-# Now that we've created binary variables for management and RandD, none of the confidence intervals cross 1, meaning that the direction
-# of the relationship is clear and that the relationship can probably be generalized to the overall population.
+# Now that we've created binary variables for management and RandD, none of the confidence intervals 
+# cross 1, meaning that the direction of the relationship is clear and that the relationship can 
+# probably be generalized to the overall population.
 
 vif(turnoverModel.4)
 1/vif(turnoverModel.4)
 
-# Looking at the tolerance values, we can see that for all variables the tolerance values are close to 1 and are much larger than the 
-# cut-off point of 0.1 below which Menard suggests there may be a serious collinearity problem. 
+# Looking at the tolerance values, we can see that for all variables the tolerance values are 
+# close to 1 and are much larger than the  cut-off point of 0.1 below which suggests there may 
+# be a serious collinearity problem. 
 
 
 ##### Model 5: Model 4 without number_project----
-turnoverModel.5 <- glm(left_employer ~ satisfaction_level + salary + tenure + last_evaluation + work_accident + 
-                         average_monthly_hours + promotion_last_5years + management + RandD, data=df, family=binomial())
+turnoverModel.5 <- glm(left_employer ~ satisfaction_level + salary + tenure + last_evaluation + 
+                        work_accident + average_monthly_hours + promotion_last_5years + management + 
+                        RandD, data=df, family=binomial())
 summary(turnoverModel.5)
 
 # Now residuals are higher than for Model 4 (worse fit), and last_evaluation is no longer significant.
@@ -472,7 +491,8 @@ modelChi; chidf; chisq.prob
 # Calculate pseudo R squared values
 logisticPseudoR2s(turnoverModel.5)
 
-# Cox and Snell's R squared can be interpreted to mean that turnoverModel.4 can account for 20% of the variance in employee turnover
+# Cox and Snell's R squared can be interpreted to mean that turnoverModel.4 can account for 
+# 20% of the variance in employee turnover
 
 # Odds ratio for predictors in the model
 exp(turnoverModel.5$coefficients)
@@ -480,21 +500,23 @@ exp(turnoverModel.5$coefficients)
 # Confidence intervals for the odds ratio
 exp(confint(turnoverModel.5))
 
-# In Model 5, the confidence interval for last_evaluation crosses 1, meaning that the direction of the relationship is
-# unclear and not generalizable to the population as a whole.
+# In Model 5, the confidence interval for last_evaluation crosses 1, meaning that the 
+# direction of the relationship is unclear and not generalizable to the population as a whole.
 
 vif(turnoverModel.5)
 1/vif(turnoverModel.5)
-# Looking at the tolerance values, we can see that for all variables the tolerance values are close to 1 and are much larger than the 
-# cut-off point of 0.1 below which suggests there may be a serious collinearity problem. 
+# Looking at the tolerance values, we can see that for all variables the tolerance values are 
+# close to 1 and are much larger than the cut-off point of 0.1 below which suggests there may 
+# be a serious collinearity problem. 
 
 ##### Model 6: Model 4 without average_monthly_hours----
-turnoverModel.6 <- glm(left_employer ~ satisfaction_level + salary + tenure + last_evaluation + work_accident + 
-                         number_project + promotion_last_5years + management + RandD,  data=df, family=binomial())
+turnoverModel.6 <- glm(left_employer ~ satisfaction_level + salary + tenure + last_evaluation + 
+                        work_accident + number_project + promotion_last_5years + management + RandD,  
+                        data=df, family=binomial())
 summary(turnoverModel.6)
 
-# Residuals are somewhat higher than for Model 4 (worse fit), but lower (better fit) than for Model 5. All factors are significant at
-# the alpha = 0.0001 level.
+# Residuals are somewhat higher than for Model 4 (worse fit), but lower (better fit) than for 
+# Model 5. All factors are significant at the alpha = 0.0001 level.
 
 # Model 6 improvement over Baseline
 # Difference between the models
@@ -509,7 +531,8 @@ modelChi; chidf; chisq.prob
 # Calculate pseudo R squared values
 logisticPseudoR2s(turnoverModel.6)
 
-# Cox and Snell's R squared can be interpreted to mean that turnoverModel.4 can account for 21% of the variance in employee turnover
+# Cox and Snell's R squared can be interpreted to mean that turnoverModel.4 can account for 21% 
+# of the variance in employee turnover
 
 # Odds ratio for predictors in the model
 exp(turnoverModel.6$coefficients)
@@ -517,13 +540,14 @@ exp(turnoverModel.6$coefficients)
 # Confidence intervals for the odds ratio
 exp(confint(turnoverModel.6))
 
-# In Model 6, none of the confidence intervals cross 1, meaning that the direction of the relationship is clear and likely generalizable 
-# to the population as a whole.
+# In Model 6, none of the confidence intervals cross 1, meaning that the direction of the 
+# relationship is clear and likely generalizable to the population as a whole.
 
 vif(turnoverModel.6)
 1/vif(turnoverModel.6)
-# Looking at the tolerance values, we can see that for all variables  the tolerance values are close to 1 and are much larger than the 
-# cut-off point of 0.1 below which suggests there may be a serious collinearity problem. 
+# Looking at the tolerance values, we can see that for all variables  the tolerance values 
+# are close to 1 and are much larger than the cut-off point of 0.1 below which suggests 
+# there may be a serious collinearity problem. 
 
 ##### Model 7: Model 4 without last_evaluation-----
 # Create the model
@@ -534,7 +558,8 @@ turnoverModel.7 <- glm(left_employer ~ satisfaction_level + salary +
                        data=df, family=binomial())
 summary(turnoverModel.7)
 
-# Residuals are slightly higher (worse fit) than in turnoverModel.4. All factors are significant at alpha = .0001 level.
+# Residuals are slightly higher (worse fit) than in turnoverModel.4. All factors are significant 
+# at alpha = .0001 level.
 
 # Model 7 improvement over Baseline
 # Difference between the models
@@ -549,7 +574,8 @@ modelChi; chidf; chisq.prob
 # Calculate pseudo R squared values
 logisticPseudoR2s(turnoverModel.7)
 
-# Cox and Snell's R squared can be interpreted to mean that turnoverModel.4 can account for 21% of the variance in employee turnover
+# Cox and Snell's R squared can be interpreted to mean that turnoverModel.4 can account for 
+# 21% of the variance in employee turnover
 
 # Odds ratio for predictors in the model
 exp(turnoverModel.7$coefficients)
@@ -557,14 +583,15 @@ exp(turnoverModel.7$coefficients)
 # Confidence intervals for the odds ratio
 exp(confint(turnoverModel.7))
 
-# None of the confidence intervals cross 1, meaning that the direction of the relationship is clear and that the relationship can probably
-# be generalized to the overall population.
+# None of the confidence intervals cross 1, meaning that the direction of the relationship is 
+# clear and that the relationship can probably be generalized to the overall population.
 
 vif(turnoverModel.7)
 1/vif(turnoverModel.7)
 
-# Looking at the tolerance values, we can see that for all variables the tolerance values are close to 1 and are much larger than the 
-# cut-off point of 0.1 below which suggests there may still be a serious collinearity problem. 
+# Looking at the tolerance values, we can see that for all variables the tolerance values are 
+# close to 1 and are much larger than the cut-off point of 0.1 below which suggests there may 
+# still be a serious collinearity problem. 
 
 
 ##### Model 8: Model 7 without number_project-----
@@ -573,8 +600,8 @@ turnoverModel.8 <- glm(left_employer ~ satisfaction_level + salary + tenure + wo
                          promotion_last_5years + management + RandD, data=df, family=binomial())
 summary(turnoverModel.8)
 
-# Residuals are somewhat higher (worse fit) than in turnoverModel.7. All factors are significant at alpha = .0001 level,
-# and the intercept is significant at the alpha = .001 level.
+# Residuals are somewhat higher (worse fit) than in turnoverModel.7. All factors are significant 
+# at alpha = .0001 level, and the intercept is significant at the alpha = .001 level.
 
 # Model 8 improvement over Baseline
 # Difference between the models
@@ -603,8 +630,9 @@ exp(confint(turnoverModel.8))
 vif(turnoverModel.8)
 1/vif(turnoverModel.8)
 
-# Looking at the tolerance values, we can see that for all variables the tolerance values are close to 1 and are much larger than the 
-# cut-off point of 0.1 below which Menard (1995) suggests there may still be a serious collinearity problem. 
+# Looking at the tolerance values, we can see that for all variables the tolerance values are 
+# close to 1 and are much larger than the  cut-off point of 0.1 below which suggests there 
+# may still be a serious collinearity problem. 
 
 ##### Model 9: Model 7 without average_monthly_hours----
 # Create the model
@@ -630,7 +658,8 @@ modelChi; chidf; chisq.prob
 # Calculate pseudo R squared values
 logisticPseudoR2s(turnoverModel.9)
 
-# Cox and Snell's R squared can be interpreted to mean that turnoverModel.4 can account for 21% of the variance in employee turnover
+# Cox and Snell's R squared can be interpreted to mean that turnoverModel.4 can account for 
+# 21% of the variance in employee turnover
 
 # Odds ratio for predictors in the model
 exp(turnoverModel.9$coefficients)
@@ -638,16 +667,16 @@ exp(turnoverModel.9$coefficients)
 # Confidence intervals for the odds ratio
 exp(confint(turnoverModel.9))
 
-# None of the confidence intervals cross 1, meaning that the direction of the relationship is clear and that the relationship can probably
-# be generalized to the overall population.
+# None of the confidence intervals cross 1, meaning that the direction of the relationship 
+# is clear and that the relationship can probably be generalized to the overall population.
 
 vif(turnoverModel.9)
 1/vif(turnoverModel.9)
 
-# Looking at the tolerance values, we can see that for all variables the tolerance values are close to 1 and are much larger than the 
-# cut-off point of 0.1 below which suggests there may be a serious collinearity problem. 
-# However, now that last_evaluation and average_monthly_hours have been removed, all of the correlations between factors are
-# below 0.2, and we can be confident in concluding that there is no problem with multicollinearity in these data.
+# Looking at the tolerance values, we can see that for all variables the tolerance values are 
+# close to 1 and are much larger than the cut-off point of 0.1 below which suggests there may 
+# be a serious collinearity problem. 
+# However, now that last_evaluation and average_monthly_hours have been removed, all of the 
+# correlations between factors are below 0.2, and we can be confident in concluding that there 
+# is no problem with multicollinearity in these data.
 # Model 9 is our best overall model.
-
-
