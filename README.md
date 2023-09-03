@@ -1,6 +1,9 @@
 # HR Data Exploration in SQL
 
-This is a SQL data analysis challenge to 
+This is a case study hosted by DataInMotion, designed to utilize intermediate and advanced SQL skills.
+
+Case Study information found here:  https://d-i-motion.com/courses/sql-case-studies/
+
 ### Questions
 1. Find the longest ongoing project for each department.
 2. Find all employees who are not managers.
