@@ -8,14 +8,14 @@ Case Study information found here:  https://d-i-motion.com/courses/sql-case-stud
 
 #### 1. Find the longest ongoing project for each department.
    
-First I'm inserted extra data into the `projects` table for a better test of the longest project for each department.
+First I inserted extra data into the `projects` table for a better test of the longest project for each department.
 ```
 INSERT INTO projects (name, start_date, end_date, department_id)
 VALUES ('HR Project 2', '2023-01-12', '2023-07-30', 1),
        ('IT Project 2', '2023-02-14', '2023-08-30', 2),
        ('Sales Project 2', '2023-03-01', '2023-09-30', 3);
 ```
-Next I created a temp table to calculate and store the number of days between the start and end date.
+Next I created a temp table to calculate and store the number of days between the start and end date. Because I used MS SQL Server for this project, I had to use the `DATEDIFF` function rather than subtracting the two dates.
 ```
 DROP TABLE IF EXISTS #project_days
 CREATE TABLE #project_days (
@@ -88,4 +88,41 @@ GROUP BY em.name
 
 #### 4. Rank employees within each department based on their hire date (earliest hire gets the highest rank).
 
+I joined the `employees` and `departments` tables and ranked each employee by hiring date within each department.
+```
+SELECT dep.name AS department, emp.name, 
+	RANK() OVER(PARTITION BY emp.department_id ORDER BY hire_date) hiring_order,
+	emp.hire_date
+FROM employees emp
+LEFT JOIN departments as dep
+ON emp.department_id = dep.id
+ORDER BY dep.name, hiring_order
+```
+| department | name          | hiring_order | hire_date  |
+|------------|---------------|--------------|------------|
+| HR         | John Doe      | 1            | 2018-06-20 |
+| HR         | Bob Miller    | 2            | 2021-04-30 |
+| IT         | Jane Smith    | 1            | 2019-07-15 |
+| IT         | Charlie Brown | 2            | 2022-10-01 |
+| Sales      | Alice Johnson | 1            | 2020-01-10 |
+| Sales      | Dave Davis    | 2            | 2023-03-15 |
+
 #### 5. Find the duration between the hire date of each employee and the hire date of the next employee hired in the same department.
+
+I used a self join and the `DATEDIFF` function to calculate the difference between hire dates for the employees in each department.
+```
+SELECT e1.name, e1.hire_date, dep.name AS department,
+	DATEDIFF(day,e1.hire_date,e2.hire_date) AS days_before_next_employee_hired
+FROM employees e1
+LEFT JOIN employees e2
+ON e1.department_id = e2.department_id
+AND e1.hire_date < e2.hire_date
+LEFT JOIN departments AS dep
+ON e2.department_id = dep.id
+WHERE DATEDIFF(day,e1.hire_date,e2.hire_date) IS NOT NULL
+```
+| name          | hire_date  | department | days_before_next_employee_hired |
+|---------------|------------|------------|---------------------------------|
+| John Doe      | 2018-06-20 | HR         | 1045                            |
+| Jane Smith    | 2019-07-15 | IT         | 1174                            |
+| Alice Johnson | 2020-01-10 | Sales      | 1160                            |
