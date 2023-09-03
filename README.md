@@ -4,8 +4,9 @@ This is a case study hosted by DataInMotion, designed to utilize intermediate an
 
 Case Study information found here:  https://d-i-motion.com/courses/sql-case-studies/
 
-### Questions
-1. Find the longest ongoing project for each department.
+### Questions to answer
+
+#### 1. Find the longest ongoing project for each department.
    
 First I'm inserted extra data into the `projects` table for a better test of the longest project for each department.
 ```
@@ -49,7 +50,42 @@ LEFT JOIN #project_days as p_days
 ON max.Department = p_days.Department
 AND max.MaxProjectDays = p_days.Days
 ```
-3. Find all employees who are not managers.
-4. Find all employees who have been hired after the start of a project in their department.
-5. Rank employees within each department based on their hire date (earliest hire gets the highest rank).
-6. Find the duration between the hire date of each employee and the hire date of the next employee hired in the same department.
+The results table with the longest project for each department is below:
+| Department	|ProjectName		| LongestProjectDays |
+|---------------|-----------------------|--------------------|
+| HR		| HR Project 2		| 199
+| IT		| IT Project 2		| 197
+| Sales		| Sales Project 2	| 213
+
+#### 2. Find all employees who are not managers.
+
+For this question, I assumed that all managers would have the word 'manager' somewhere in their job title.
+```
+SELECT name, job_title, department_id
+FROM employees
+WHERE LOWER(job_title) NOT LIKE '%manager%'
+```
+| name          | job_title       | department_id |
+|---------------|-----------------|---------------|
+| Bob Miller    | HR Associate    | 1             |
+| Charlie Brown | IT Associate    | 2             |
+| Dave Davis    | Sales Associate | 3             |
+
+#### 3. Find all employees who have been hired after the start of a project in their department.
+
+For this question, I did a join on `employees` and `projects` to compare employee hire dates to project start dates.
+```
+SELECT em.name AS EmployeesHiredAfterProjectStart
+FROM employees em
+FULL JOIN projects pr
+ON em.department_id = pr.department_id
+WHERE DATEDIFF(DAY,pr.start_date,em.hire_date) > 0
+GROUP BY em.name
+```
+| EmployeesHiredAfterProjectStart |
+|---------------------------------|
+| Dave Davis                      |
+
+#### 4. Rank employees within each department based on their hire date (earliest hire gets the highest rank).
+
+#### 5. Find the duration between the hire date of each employee and the hire date of the next employee hired in the same department.
